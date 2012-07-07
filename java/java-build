@@ -2,13 +2,19 @@
  
 FAILURE=1
 SUCCESS=0
+
+# If you cloned this code into your /tmp directory, the correct
+# value for APP_HOME will be /tmp/pubnub-api/java
  
-APP_HOME=/your/app/home/path/pubnub-java/
+APP_HOME=/tmp/pubnub-api/java
 LIB=${APP_HOME}/lib/
  
 CP=${LIB}async-http-client-1.6.5-shaded.jar:${LIB}slf4j-nop-1.6.2.jar:src/:.
  
-APP_JAVA_HOME=/opt/jdk
+# Please check for valid presence of JAVA_HOME. 
+# If it does not exist, throw a fatal error, telling the user they must set it.
+
+APP_JAVA_HOME=/usr/lib/jvm/java-6-openjdk
 cd ${APP_HOME}
 echo -e "Building..."
 
