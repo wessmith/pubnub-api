@@ -13,7 +13,6 @@
     // limitations under the License.
 
 #import "CEPubnub.h"
-#import "JSON.h"
 #import "Common.h"
 
 #define kDefaultOrigin @"pubsub.pubnub.com"
@@ -96,7 +95,15 @@ typedef enum {
             //  NSLog(@"PubNub request returned Content-Encoding : %@", contente);
         NSString* contentType = [[_response allHeaderFields] objectForKey:@"Content-Type"];
         if ([contentType hasPrefix:@"text/javascript"] && [contentType containsString:@"UTF-8"]) {  // Should be [text/javascript; charset="UTF-8"] but is sometimes different on 3G
-            [_pubNub connection:self didCompleteWithResponse:JSONParseData(_data)];
+            
+            NSError *error = nil;
+            id response = [NSJSONSerialization JSONObjectWithData:_data options:NSJSONReadingAllowFragments error:&error];
+            if (error) {
+                NSLog(@"JSON deserializing failed: %@", error);
+                return;
+            }
+            
+            [_pubNub connection:self didCompleteWithResponse:response];
                 //  NSLog(@"PubNub request returned unexpected content type: %@", contentType);
         } else {
             NSLog(@"PubNub request returned unexpected content type: %@", contentType);
@@ -276,7 +283,11 @@ typedef enum {
         msg = [self getEncryptedDictionary:(NSDictionary*) message];
     }
     
-    NSString* json = JSONWriteString(msg);
+    
+    NSString* json = [NSString stringWithFormat:@"\"%@\"", msg];
+    NSLog(@"\n\nMSG: \n%@\n\n", json);
+    
+    
     NSString* signature;
     if (_secretKey) {
         signature =[CommonFunction HMAC_SHA256withKey:[NSString stringWithFormat:@"%@",_secretKey] Input:[NSString stringWithFormat:@"%@/%@/%@/%@/%@", _publishKey, _subscribeKey, _secretKey, channel, json] ];
@@ -455,7 +466,15 @@ NSDecimalNumber* time_token = 0;
          
          if ([data length] >0 && error == nil)
          {
-             NSArray* resp=    (NSArray *)JSONParseData(data);
+             NSError *error = nil;
+             id response = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error];
+             if (error) {
+                 NSLog(@"JSON deserializing failed: %@", error);
+                 return;
+             }
+             
+             NSArray* resp=    (NSArray *)response;
+             
              if ([resp isKindOfClass:[NSArray class]] && ([resp count] == 1)) {
                  time_token = [resp objectAtIndex:0];
              }
